@@ -256,7 +256,7 @@ const App = () => {
         setCurrentPage('blog');
       } else if (path === '/contact') {
         setCurrentPage('contact');
-      } else if (path === '/admin') {
+      } else if (path === '/admin' || path.startsWith('/admin/')) {
         setCurrentPage('admin');
       } else if (path === '/migrate') {
         setCurrentPage('migrate');

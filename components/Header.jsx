@@ -10,7 +10,6 @@ export const Header = ({ currentPage, onNavigate, settings }) => {
     { label: 'Courses', value: 'courses' },
     { label: 'Blog', value: 'blog' },
     { label: 'Contact', value: 'contact' },
-    { label: 'Flowbite Test', value: 'flowbite-test' },
   ];
 
   const handleNavClick = (page) => {
@@ -47,9 +46,9 @@ export const Header = ({ currentPage, onNavigate, settings }) => {
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition duration-300">
               <GraduationCap size={24} />
             </div>
-            <span className="text-xl md:text-2xl font-bold tracking-tighter text-slate-900">
+            {/* <span className="text-xl md:text-2xl font-bold tracking-tighter text-slate-900">
               NEXUS<span className="text-primary">ELITE</span>
-            </span>
+            </span> */}
           </div>
 
           {/* Desktop Nav */}

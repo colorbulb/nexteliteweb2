@@ -6,6 +6,7 @@ import { CourseEditor } from './CourseEditor.jsx';
 import { BlogEditor } from './BlogEditor.jsx';
 import { ListManager } from './ListManager.jsx';
 import { AnnouncementEditor } from './AnnouncementEditor.jsx';
+import { ComponentTest } from './ComponentTest.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { 
   Container, 
@@ -71,12 +72,23 @@ export const Admin = ({
   const [editingBlog, setEditingBlog] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Listen for auth state changes
+  // Listen for auth state changes and handle admin routing
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        setView('dashboard');
+        // Check URL for admin sub-routes
+        const path = window.location.pathname;
+        if (path.startsWith('/admin/')) {
+          const subRoute = path.split('/admin/')[1];
+          if (subRoute && ['dashboard', 'content', 'pages', 'team', 'leads', 'announcements', 'settings', 'lists', 'components'].includes(subRoute)) {
+            setView(subRoute);
+          } else {
+            setView('dashboard');
+          }
+        } else {
+          setView('dashboard');
+        }
       } else {
         setUser(null);
         setView('login');
@@ -85,6 +97,34 @@ export const Admin = ({
 
     return () => unsubscribe();
   }, []);
+
+  // Handle admin sub-route changes
+  useEffect(() => {
+    const handlePopState = () => {
+      if (user) {
+        const path = window.location.pathname;
+        if (path.startsWith('/admin/')) {
+          const subRoute = path.split('/admin/')[1];
+          if (subRoute && ['dashboard', 'content', 'pages', 'team', 'leads', 'announcements', 'settings', 'lists', 'components'].includes(subRoute)) {
+            setView(subRoute);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [user]);
+
+  // Update URL when view changes in admin
+  useEffect(() => {
+    if (user && view !== 'login') {
+      const adminPath = `/admin/${view}`;
+      if (window.location.pathname !== adminPath) {
+        window.history.pushState({ view }, '', adminPath);
+      }
+    }
+  }, [view, user]);
 
   // --- Auth ---
   const handleLogin = async (e) => {
@@ -380,6 +420,16 @@ export const Admin = ({
                 className={`text-white ${view === 'lists' ? 'bg-primary' : ''}`}
               >
                 <Database size={18} className="me-2" /> Lists
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink 
+                href="#" 
+                active={view === 'components'}
+                onClick={(e) => { e.preventDefault(); setView('components'); setSidebarOpen(false); }}
+                className={`text-white ${view === 'components' ? 'bg-primary' : ''}`}
+              >
+                <FileText size={18} className="me-2" /> Components
               </NavLink>
             </NavItem>
           </Nav>
