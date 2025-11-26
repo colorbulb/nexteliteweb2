@@ -1010,6 +1010,11 @@ export const Admin = ({
           </div>
         )}
 
+        {/* COMPONENTS TEST VIEW */}
+        {view === 'components' && (
+          <ComponentTest />
+        )}
+
         {/* SETTINGS VIEW */}
         {view === 'settings' && (
           <div>
