@@ -4,10 +4,25 @@ import { Calendar, User, ArrowRight, Search, Instagram, Facebook, Heart } from '
 export const Blog = ({ onViewPost, posts, socialFeed }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredPosts = posts.filter(post => 
-    post.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.category.toLowerCase().includes(searchTerm.toLowerCase())
+  // Combine blog posts and social feed posts, sorted by date (newest first)
+  const allContent = [
+    ...posts.map(post => ({ ...post, type: 'blog', sortDate: new Date(post.date || 0) })),
+    ...(socialFeed || []).map(social => ({ 
+      ...social, 
+      type: 'social',
+      title: social.caption || 'Social Media Post',
+      excerpt: social.caption || '',
+      date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+      author: 'Nexus Elite',
+      category: 'Social',
+      sortDate: new Date()
+    }))
+  ].sort((a, b) => b.sortDate - a.sortDate);
+
+  const filteredContent = allContent.filter(item => 
+    item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (item.excerpt && item.excerpt.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (item.category && item.category.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -36,74 +51,79 @@ export const Blog = ({ onViewPost, posts, socialFeed }) => {
             </button>
         </div>
 
-        {/* Blog Grid */}
+        {/* Combined Blog & Social Feed Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-20">
-          {filteredPosts.length > 0 ? (
-            filteredPosts.map(post => (
-              <div key={post.id} className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-2xl transition duration-500 flex flex-col h-full border border-slate-100 group cursor-pointer" onClick={() => onViewPost(post)}>
-                <div className="h-60 overflow-hidden relative">
-                  <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition z-10"></div>
-                  <img 
-                    src={post.image} 
-                    alt={post.title} 
-                    className="w-full h-full object-cover transform group-hover:scale-105 transition duration-700" 
-                  />
-                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur text-primary text-xs font-bold px-3 py-1 rounded shadow-sm z-20 uppercase tracking-wide">
-                    {post.category}
+          {filteredContent.length > 0 ? (
+            filteredContent.map(item => {
+              if (item.type === 'social') {
+                // Social media post card
+                return (
+                  <div key={item.id} className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-2xl transition duration-500 flex flex-col h-full border border-slate-100 group">
+                    <div className="h-60 overflow-hidden relative">
+                      <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition z-10"></div>
+                      <img 
+                        src={item.image} 
+                        alt={item.caption || 'Social media post'} 
+                        className="w-full h-full object-cover transform group-hover:scale-105 transition duration-700" 
+                      />
+                      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur text-primary text-xs font-bold px-3 py-1 rounded shadow-sm z-20 uppercase tracking-wide flex items-center gap-1">
+                        {item.type === 'instagram' ? <Instagram size={12} /> : <Facebook size={12} />}
+                        {item.category}
+                      </div>
+                      <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur text-slate-700 text-xs font-bold px-3 py-1 rounded shadow-sm z-20 flex items-center gap-1">
+                        <Heart size={12} className="text-red-500" /> {item.likes || 0}
+                      </div>
+                    </div>
+                    <div className="p-8 flex-1 flex flex-col">
+                      <div className="flex items-center gap-4 text-xs text-slate-400 mb-4 font-medium uppercase tracking-wider">
+                        <span className="flex items-center gap-1">
+                          {item.type === 'instagram' ? <Instagram size={12} /> : <Facebook size={12} />}
+                          {item.type === 'instagram' ? 'Instagram' : 'Facebook'}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-bold mb-4 text-slate-900 leading-tight">{item.caption || 'Social Media Post'}</h3>
+                      <div className="mt-auto pt-4 border-t border-slate-100">
+                        <span className="text-xs text-slate-500">Social Media</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="p-8 flex-1 flex flex-col">
-                  <div className="flex items-center gap-4 text-xs text-slate-400 mb-4 font-medium uppercase tracking-wider">
-                    <span className="flex items-center gap-1"><Calendar size={12} /> {post.date}</span>
-                    <span className="flex items-center gap-1"><User size={12} /> {post.author}</span>
+                );
+              } else {
+                // Blog post card
+                return (
+                  <div key={item.id} className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-2xl transition duration-500 flex flex-col h-full border border-slate-100 group cursor-pointer" onClick={() => onViewPost(item)}>
+                    <div className="h-60 overflow-hidden relative">
+                      <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition z-10"></div>
+                      <img 
+                        src={item.image} 
+                        alt={item.title} 
+                        className="w-full h-full object-cover transform group-hover:scale-105 transition duration-700" 
+                      />
+                      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur text-primary text-xs font-bold px-3 py-1 rounded shadow-sm z-20 uppercase tracking-wide">
+                        {item.category}
+                      </div>
+                    </div>
+                    <div className="p-8 flex-1 flex flex-col">
+                      <div className="flex items-center gap-4 text-xs text-slate-400 mb-4 font-medium uppercase tracking-wider">
+                        <span className="flex items-center gap-1"><Calendar size={12} /> {item.date}</span>
+                        <span className="flex items-center gap-1"><User size={12} /> {item.author}</span>
+                      </div>
+                      <h3 className="text-2xl font-bold mb-4 text-slate-900 group-hover:text-primary transition leading-tight">{item.title}</h3>
+                      <p className="text-slate-600 text-sm mb-6 flex-1 leading-relaxed">{item.excerpt}</p>
+                      <div className="flex items-center text-primary font-bold text-sm group-hover:gap-2 transition-all">
+                        Read Article <ArrowRight size={16} className="ml-1" />
+                      </div>
+                    </div>
                   </div>
-                  <h3 className="text-2xl font-bold mb-4 text-slate-900 group-hover:text-primary transition leading-tight">{post.title}</h3>
-                  <p className="text-slate-600 text-sm mb-6 flex-1 leading-relaxed">{post.excerpt}</p>
-                  <div className="flex items-center text-primary font-bold text-sm group-hover:gap-2 transition-all">
-                    Read Article <ArrowRight size={16} className="ml-1" />
-                  </div>
-                </div>
-              </div>
-            ))
+                );
+              }
+            })
           ) : (
             <div className="col-span-full text-center py-20 text-slate-500">
-              <p className="text-xl font-medium">No articles found matching your search.</p>
+              <p className="text-xl font-medium">No content found matching your search.</p>
             </div>
           )}
         </div>
-
-        {/* Social Media Feed Section */}
-        {socialFeed && socialFeed.length > 0 && (
-          <div className="border-t border-slate-200 pt-16">
-            <div className="flex items-center justify-center gap-3 mb-10">
-              <Instagram size={28} className="text-primary" />
-              <h2 className="text-3xl font-bold text-slate-900">@NexusEliteLife</h2>
-            </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {socialFeed.map(post => (
-                <div key={post.id} className="relative group overflow-hidden rounded-xl aspect-square bg-slate-100 cursor-pointer">
-                  <img 
-                    src={post.image} 
-                    alt="Social media post" 
-                    className="w-full h-full object-cover transition duration-500 group-hover:scale-110" 
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <div className="text-white flex items-center gap-2 font-bold">
-                       <Heart size={20} fill="white" /> {post.likes}
-                    </div>
-                  </div>
-                  <div className="absolute top-2 right-2 bg-white/80 p-1 rounded-full text-slate-900">
-                    {post.type === 'instagram' ? <Instagram size={14} /> : <Facebook size={14} />}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="text-center mt-8">
-               <button className="text-sm font-bold text-slate-500 hover:text-primary transition">Follow us on Social Media</button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

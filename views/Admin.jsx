@@ -6,6 +6,29 @@ import { CourseEditor } from './CourseEditor.jsx';
 import { BlogEditor } from './BlogEditor.jsx';
 import { ListManager } from './ListManager.jsx';
 import { AnnouncementEditor } from './AnnouncementEditor.jsx';
+import { 
+  Container, 
+  Row, 
+  Col, 
+  Nav, 
+  NavItem, 
+  NavLink, 
+  Card, 
+  CardBody, 
+  CardHeader,
+  Table,
+  Button,
+  Badge,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Form,
+  FormGroup,
+  Label,
+  Input,
+  Alert
+} from 'reactstrap';
 
 export const Admin = ({ 
   courses, 
@@ -251,81 +274,183 @@ export const Admin = ({
   }
 
   // --- CMS Layout ---
-  return (
-    <div className="min-h-screen w-full flex bg-slate-100">
-      {/* Sidebar */}
-      <div className="w-64 bg-slate-900 text-white flex flex-col fixed h-full overflow-y-auto">
-        <div className="p-6 border-b border-slate-800">
-          <h2 className="text-xl font-bold">Nexus CMS</h2>
-          <p className="text-xs text-slate-500 mt-1">Admin Control Panel</p>
-        </div>
-        <nav className="flex-1 p-4 space-y-2">
-          <button onClick={() => setView('dashboard')} className={`flex items-center w-full p-3 rounded transition ${view === 'dashboard' ? 'bg-primary' : 'hover:bg-slate-800'}`}>
-            <LayoutDashboard size={20} className="mr-3" /> Dashboard
-          </button>
-          <button onClick={() => setView('pages')} className={`flex items-center w-full p-3 rounded transition ${view === 'pages' ? 'bg-primary' : 'hover:bg-slate-800'}`}>
-            <Type size={20} className="mr-3" /> Pages Text
-          </button>
-          <button onClick={() => setView('content')} className={`flex items-center w-full p-3 rounded transition ${view === 'content' ? 'bg-primary' : 'hover:bg-slate-800'}`}>
-            <FileText size={20} className="mr-3" /> Blog & Courses
-          </button>
-          <button onClick={() => setView('team')} className={`flex items-center w-full p-3 rounded transition ${view === 'team' ? 'bg-primary' : 'hover:bg-slate-800'}`}>
-            <Users size={20} className="mr-3" /> Team & Reviews
-          </button>
-          <button onClick={() => setView('leads')} className={`flex items-center w-full p-3 rounded transition ${view === 'leads' ? 'bg-primary' : 'hover:bg-slate-800'}`}>
-            <Star size={20} className="mr-3" /> Leads ({leads.length})
-          </button>
-          <button onClick={() => setView('announcements')} className={`flex items-center w-full p-3 rounded transition ${view === 'announcements' ? 'bg-primary' : 'hover:bg-slate-800'}`}>
-            <Star size={20} className="mr-3" /> Announcements
-          </button>
-          <button onClick={() => setView('settings')} className={`flex items-center w-full p-3 rounded transition ${view === 'settings' ? 'bg-primary' : 'hover:bg-slate-800'}`}>
-            <Settings size={20} className="mr-3" /> Settings
-          </button>
-          <button onClick={() => setView('lists')} className={`flex items-center w-full p-3 rounded transition ${view === 'lists' ? 'bg-primary' : 'hover:bg-slate-800'}`}>
-            <Database size={20} className="mr-3" /> Lists
-          </button>
-        </nav>
-        <div className="p-4 border-t border-slate-800">
-          <div className="text-xs text-slate-500 mb-2 px-3">
-            Logged in as: {user?.email}
-          </div>
-          <button onClick={handleLogout} className="flex items-center w-full p-3 rounded text-red-400 hover:bg-slate-800 transition">
-            <LogOut size={20} className="mr-3" /> Logout
-          </button>
-        </div>
-      </div>
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-      {/* Main Content */}
-      <div className="flex-1 ml-64 p-8 overflow-y-auto h-screen">
+  return (
+    <Container fluid className="p-0 min-vh-100">
+      <Row className="g-0">
+        {/* Sidebar - Responsive */}
+        <Col 
+          xs={12} 
+          md={3} 
+          lg={2} 
+          className={`bg-dark text-white d-flex flex-column position-fixed h-100 overflow-auto ${sidebarOpen ? 'd-block' : 'd-none d-md-block'}`}
+          style={{ zIndex: 1000 }}
+        >
+          <div className="p-3 border-bottom border-secondary">
+            <div className="d-flex justify-content-between align-items-center">
+              <div>
+                <h5 className="mb-0 fw-bold">Nexus CMS</h5>
+                <small className="text-muted">Admin Control Panel</small>
+              </div>
+              <Button 
+                close 
+                className="d-md-none text-white" 
+                onClick={() => setSidebarOpen(false)}
+                aria-label="Close"
+              />
+            </div>
+          </div>
+          <Nav vertical className="flex-grow-1 p-2">
+            <NavItem>
+              <NavLink 
+                href="#" 
+                active={view === 'dashboard'}
+                onClick={(e) => { e.preventDefault(); setView('dashboard'); setSidebarOpen(false); }}
+                className={`text-white ${view === 'dashboard' ? 'bg-primary' : ''}`}
+              >
+                <LayoutDashboard size={18} className="me-2" /> Dashboard
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink 
+                href="#" 
+                active={view === 'pages'}
+                onClick={(e) => { e.preventDefault(); setView('pages'); setSidebarOpen(false); }}
+                className={`text-white ${view === 'pages' ? 'bg-primary' : ''}`}
+              >
+                <Type size={18} className="me-2" /> Pages Text
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink 
+                href="#" 
+                active={view === 'content'}
+                onClick={(e) => { e.preventDefault(); setView('content'); setSidebarOpen(false); }}
+                className={`text-white ${view === 'content' ? 'bg-primary' : ''}`}
+              >
+                <FileText size={18} className="me-2" /> Blog & Courses
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink 
+                href="#" 
+                active={view === 'team'}
+                onClick={(e) => { e.preventDefault(); setView('team'); setSidebarOpen(false); }}
+                className={`text-white ${view === 'team' ? 'bg-primary' : ''}`}
+              >
+                <Users size={18} className="me-2" /> Team & Reviews
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink 
+                href="#" 
+                active={view === 'leads'}
+                onClick={(e) => { e.preventDefault(); setView('leads'); setSidebarOpen(false); }}
+                className={`text-white ${view === 'leads' ? 'bg-primary' : ''}`}
+              >
+                <Star size={18} className="me-2" /> Leads <Badge color="info">{leads.length}</Badge>
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink 
+                href="#" 
+                active={view === 'announcements'}
+                onClick={(e) => { e.preventDefault(); setView('announcements'); setSidebarOpen(false); }}
+                className={`text-white ${view === 'announcements' ? 'bg-primary' : ''}`}
+              >
+                <Star size={18} className="me-2" /> Announcements
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink 
+                href="#" 
+                active={view === 'settings'}
+                onClick={(e) => { e.preventDefault(); setView('settings'); setSidebarOpen(false); }}
+                className={`text-white ${view === 'settings' ? 'bg-primary' : ''}`}
+              >
+                <Settings size={18} className="me-2" /> Settings
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink 
+                href="#" 
+                active={view === 'lists'}
+                onClick={(e) => { e.preventDefault(); setView('lists'); setSidebarOpen(false); }}
+                className={`text-white ${view === 'lists' ? 'bg-primary' : ''}`}
+              >
+                <Database size={18} className="me-2" /> Lists
+              </NavLink>
+            </NavItem>
+          </Nav>
+          <div className="p-3 border-top border-secondary">
+            <small className="text-muted d-block mb-2">Logged in as: {user?.email}</small>
+            <Button 
+              color="danger" 
+              outline 
+              block 
+              onClick={handleLogout}
+              className="d-flex align-items-center justify-content-center"
+            >
+              <LogOut size={18} className="me-2" /> Logout
+            </Button>
+          </div>
+        </Col>
+
+        {/* Main Content - Responsive */}
+        <Col xs={12} md={9} lg={10} className="ms-md-auto">
+          <div className="p-3">
+            {/* Mobile Menu Button */}
+            <Button 
+              color="dark" 
+              className="d-md-none mb-3"
+              onClick={() => setSidebarOpen(true)}
+            >
+              ☰ Menu
+            </Button>
         
         {/* DASHBOARD VIEW */}
         {view === 'dashboard' && (
           <div>
-            <h1 className="text-3xl font-bold mb-8 text-slate-800">Overview</h1>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 className="text-slate-500 font-bold text-sm uppercase">Total Leads</h3>
-                <p className="text-4xl font-bold text-slate-900 mt-2">{leads.length}</p>
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 className="text-slate-500 font-bold text-sm uppercase">Active Courses</h3>
-                <p className="text-4xl font-bold text-slate-900 mt-2">{courses.length}</p>
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 className="text-slate-500 font-bold text-sm uppercase">Blog Posts</h3>
-                <p className="text-4xl font-bold text-slate-900 mt-2">{blogPosts.length}</p>
-              </div>
-            </div>
+            <h1 className="h3 mb-4">Overview</h1>
+            <Row className="mb-4">
+              <Col xs={12} md={4} className="mb-3">
+                <Card>
+                  <CardBody>
+                    <h6 className="text-muted text-uppercase small">Total Leads</h6>
+                    <h2 className="display-4 fw-bold">{leads.length}</h2>
+                  </CardBody>
+                </Card>
+              </Col>
+              <Col xs={12} md={4} className="mb-3">
+                <Card>
+                  <CardBody>
+                    <h6 className="text-muted text-uppercase small">Active Courses</h6>
+                    <h2 className="display-4 fw-bold">{courses.length}</h2>
+                  </CardBody>
+                </Card>
+              </Col>
+              <Col xs={12} md={4} className="mb-3">
+                <Card>
+                  <CardBody>
+                    <h6 className="text-muted text-uppercase small">Blog Posts</h6>
+                    <h2 className="display-4 fw-bold">{blogPosts.length}</h2>
+                  </CardBody>
+                </Card>
+              </Col>
+            </Row>
             
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-slate-900">Data Management</h3>
-              </div>
-              <p className="text-slate-600 mb-4">Export your current website state (including leads and content updates) to a JSON file compatible with Firebase import.</p>
-              <button onClick={handleExport} className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-indigo-700 transition">
-                <Download size={20} /> Download Firebase Import File
-              </button>
-            </div>
+            <Card>
+              <CardHeader>
+                <h5 className="mb-0">Data Management</h5>
+              </CardHeader>
+              <CardBody>
+                <p className="text-muted mb-3">Export your current website state (including leads and content updates) to a JSON file compatible with Firebase import.</p>
+                <Button color="primary" onClick={handleExport}>
+                  <Download size={18} className="me-2" /> Download Firebase Import File
+                </Button>
+              </CardBody>
+            </Card>
           </div>
         )}
 
@@ -804,7 +929,9 @@ export const Admin = ({
           </div>
         )}
 
-      </div>
-    </div>
+          </div>
+        </Col>
+      </Row>
+    </Container>
   );
 };
