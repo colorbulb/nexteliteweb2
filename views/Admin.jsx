@@ -866,17 +866,97 @@ export const Admin = ({
         {/* ANNOUNCEMENTS VIEW */}
         {view === 'announcements' && (
           <div>
-            <h1 className="text-3xl font-bold mb-8 text-slate-800">Announcement Modals</h1>
-            <p className="text-slate-600 mb-6">
-              Manage announcement modals that appear on the homepage. Up to 5 announcements can be saved.
-              One will be randomly selected and displayed to visitors.
-            </p>
-            <button
-              onClick={() => setShowAnnouncementModal(true)}
-              className="bg-primary text-white px-6 py-3 rounded font-bold hover:bg-blue-600 transition flex items-center gap-2 mb-6"
-            >
-              <Plus size={20} /> Manage Announcements
-            </button>
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h1 className="text-3xl font-bold text-slate-800">Announcement Modals</h1>
+                <p className="text-slate-600 mt-2">
+                  Manage announcement modals that appear on the homepage. Up to 5 announcements can be saved.
+                  One will be randomly selected and displayed to visitors.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowAnnouncementModal(true)}
+                className="bg-primary text-white px-6 py-3 rounded font-bold hover:bg-blue-600 transition flex items-center gap-2"
+                disabled={announcements.length >= 5}
+              >
+                <Plus size={20} /> Add Announcement
+              </button>
+            </div>
+
+            {/* Announcements List */}
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-200">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th className="p-4 font-bold text-slate-700">Title</th>
+                    <th className="p-4 font-bold text-slate-700">Status</th>
+                    <th className="p-4 font-bold text-slate-700">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {announcements.length === 0 ? (
+                    <tr>
+                      <td colSpan="3" className="p-8 text-center text-slate-500">
+                        No announcements yet. Click "Add Announcement" to create one.
+                      </td>
+                    </tr>
+                  ) : (
+                    announcements.map(ann => (
+                      <tr key={ann.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                        <td className="p-4 font-medium">{ann.title || 'Untitled'}</td>
+                        <td className="p-4">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={!ann.disabled}
+                              onChange={async (e) => {
+                                const updated = { ...ann, disabled: !e.target.checked };
+                                await onUpdateAnnouncement(updated);
+                              }}
+                              className="w-4 h-4 text-primary rounded focus:ring-primary"
+                            />
+                            <span className={`text-sm font-bold ${ann.disabled ? 'text-red-600' : 'text-green-600'}`}>
+                              {ann.disabled ? 'Disabled' : 'Enabled'}
+                            </span>
+                          </label>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingCourse(null);
+                                setEditingBlog(null);
+                                setShowAnnouncementModal(true);
+                                // Set the announcement to edit in the modal
+                                const announcementToEdit = announcements.find(a => a.id === ann.id);
+                                if (announcementToEdit) {
+                                  // We'll need to pass this to the modal
+                                }
+                              }}
+                              className="text-blue-500 hover:text-blue-700 p-2"
+                              title="Edit"
+                            >
+                              <Edit size={18} />
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (window.confirm(`Are you sure you want to delete "${ann.title}"?`)) {
+                                  onDeleteAnnouncement(ann.id);
+                                }
+                              }}
+                              className="text-red-500 hover:text-red-700 p-2"
+                              title="Delete"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 

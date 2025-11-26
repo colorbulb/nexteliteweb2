@@ -175,7 +175,7 @@ const App = () => {
           
           // After initialization, reload from Firestore to get the saved data
           const [reloadedCourses, reloadedPosts, reloadedTeam, reloadedTestimonials, 
-                  reloadedSettings, reloadedPageContent, reloadedSocialFeed] = 
+                  reloadedSettings, reloadedPageContent, reloadedSocialFeed, reloadedAnnouncements] = 
             await Promise.all([
               getCourses(),
               getBlogPosts(),
@@ -183,7 +183,8 @@ const App = () => {
               getTestimonials(),
               getSettings(),
               getPageContent(),
-              getSocialFeed()
+              getSocialFeed(),
+              getAnnouncements()
             ]);
           
           // Update state with Firestore data
@@ -192,6 +193,7 @@ const App = () => {
           setTeam(reloadedTeam);
           setTestimonials(reloadedTestimonials);
           setSocialFeed(reloadedSocialFeed);
+          setAnnouncements(reloadedAnnouncements);
           
           if (reloadedSettings) {
             setSettings(reloadedSettings);

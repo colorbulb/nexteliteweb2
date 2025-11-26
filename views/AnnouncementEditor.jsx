@@ -9,7 +9,8 @@ export const AnnouncementEditor = ({ announcements, onSave, onDelete, onClose })
     image: '',
     content: '',
     buttonText: '',
-    buttonUrl: ''
+    buttonUrl: '',
+    disabled: false
   });
 
   const MAX_ANNOUNCEMENTS = 5;
@@ -22,7 +23,8 @@ export const AnnouncementEditor = ({ announcements, onSave, onDelete, onClose })
         image: announcement.image || '',
         content: announcement.content || '',
         buttonText: announcement.buttonText || '',
-        buttonUrl: announcement.buttonUrl || ''
+        buttonUrl: announcement.buttonUrl || '',
+        disabled: announcement.disabled || false
       });
     } else {
       setFormData({
@@ -211,7 +213,8 @@ export const AnnouncementEditor = ({ announcements, onSave, onDelete, onClose })
                         image: '',
                         content: '',
                         buttonText: '',
-                        buttonUrl: ''
+                        buttonUrl: '',
+                        disabled: false
                       });
                     }}
                     className="px-6 py-3 border border-slate-300 rounded font-bold hover:bg-slate-50 transition"
