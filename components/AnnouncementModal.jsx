@@ -6,10 +6,14 @@ export const AnnouncementModal = ({ announcements = [] }) => {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
+    console.log('AnnouncementModal: Received announcements:', announcements);
+    
     // Filter out disabled announcements
     const activeAnnouncements = announcements.filter(ann => !ann.disabled);
+    console.log('AnnouncementModal: Active announcements:', activeAnnouncements);
     
     if (activeAnnouncements.length === 0) {
+      console.log('AnnouncementModal: No active announcements');
       setAnnouncement(null);
       setShow(false);
       return;
@@ -18,14 +22,18 @@ export const AnnouncementModal = ({ announcements = [] }) => {
     // Get random announcement from active ones
     const randomIndex = Math.floor(Math.random() * activeAnnouncements.length);
     const randomAnnouncement = activeAnnouncements[randomIndex];
+    console.log('AnnouncementModal: Selected random announcement:', randomAnnouncement);
     
     if (randomAnnouncement) {
       setAnnouncement(randomAnnouncement);
       // Check if user has dismissed this announcement
       const dismissedId = localStorage.getItem('dismissedAnnouncementId');
+      console.log('AnnouncementModal: Dismissed ID:', dismissedId, 'Current ID:', randomAnnouncement.id);
       if (dismissedId !== randomAnnouncement.id) {
+        console.log('AnnouncementModal: Showing announcement');
         setShow(true);
       } else {
+        console.log('AnnouncementModal: Announcement was dismissed, not showing');
         setShow(false);
       }
     }
