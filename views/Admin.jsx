@@ -5,6 +5,7 @@ import { auth } from '../firebase/config.js';
 import { CourseEditor } from './CourseEditor.jsx';
 import { BlogEditor } from './BlogEditor.jsx';
 import { ListManager } from './ListManager.jsx';
+import { AnnouncementEditor } from './AnnouncementEditor.jsx';
 
 export const Admin = ({ 
   courses, 
@@ -25,6 +26,10 @@ export const Admin = ({
   onUpdatePageContent,
   onUpdateTeam,
   onUpdateTestimonials,
+  announcements,
+  onAddAnnouncement,
+  onUpdateAnnouncement,
+  onDeleteAnnouncement,
   onExit 
 }) => {
   const [view, setView] = useState('login'); // login, dashboard, content, pages, team, leads, settings, lists
@@ -37,6 +42,7 @@ export const Admin = ({
   // Modal states
   const [showCourseModal, setShowCourseModal] = useState(false);
   const [showBlogModal, setShowBlogModal] = useState(false);
+  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
   const [editingBlog, setEditingBlog] = useState(null);
 
@@ -132,6 +138,20 @@ export const Admin = ({
     } catch (error) {
       console.error('Error saving blog post:', error);
       alert('Error saving blog post: ' + error.message);
+    }
+  };
+
+  // Announcement handlers
+  const handleSaveAnnouncement = async (announcementData) => {
+    try {
+      if (announcementData.id) {
+        await onUpdateAnnouncement(announcementData);
+      } else {
+        await onAddAnnouncement(announcementData);
+      }
+    } catch (error) {
+      console.error('Error saving announcement:', error);
+      throw error;
     }
   };
 
@@ -650,6 +670,16 @@ export const Admin = ({
           />
         )}
 
+        {/* Announcement Editor Modal */}
+        {showAnnouncementModal && (
+          <AnnouncementEditor
+            announcements={announcements || []}
+            onSave={handleSaveAnnouncement}
+            onDelete={onDeleteAnnouncement}
+            onClose={() => setShowAnnouncementModal(false)}
+          />
+        )}
+
         {/* LEADS VIEW */}
         {view === 'leads' && (
           <div>
@@ -702,6 +732,23 @@ export const Admin = ({
               <ListManager listType="instructors" />
               <ListManager listType="levels" />
             </div>
+          </div>
+        )}
+
+        {/* ANNOUNCEMENTS VIEW */}
+        {view === 'announcements' && (
+          <div>
+            <h1 className="text-3xl font-bold mb-8 text-slate-800">Announcement Modals</h1>
+            <p className="text-slate-600 mb-6">
+              Manage announcement modals that appear on the homepage. Up to 5 announcements can be saved.
+              One will be randomly selected and displayed to visitors.
+            </p>
+            <button
+              onClick={() => setShowAnnouncementModal(true)}
+              className="bg-primary text-white px-6 py-3 rounded font-bold hover:bg-blue-600 transition flex items-center gap-2 mb-6"
+            >
+              <Plus size={20} /> Manage Announcements
+            </button>
           </div>
         )}
 

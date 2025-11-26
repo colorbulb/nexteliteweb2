@@ -22,7 +22,8 @@ const COLLECTIONS = {
   SETTINGS: 'settings',
   PAGE_CONTENT: 'pageContent',
   SOCIAL_FEED: 'socialFeed',
-  LEADS: 'leads'
+  LEADS: 'leads',
+  ANNOUNCEMENTS: 'announcements'
 };
 
 // ===== COURSES =====
@@ -306,6 +307,56 @@ export const saveLead = async (lead) => {
   } catch (error) {
     console.error('Error saving lead:', error);
     throw error;
+  }
+};
+
+// ===== ANNOUNCEMENTS =====
+export const getAnnouncements = async () => {
+  try {
+    const announcementsRef = collection(db, COLLECTIONS.ANNOUNCEMENTS);
+    const snapshot = await getDocs(announcementsRef);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('Error fetching announcements:', error);
+    return [];
+  }
+};
+
+export const saveAnnouncement = async (announcement) => {
+  try {
+    if (announcement.id) {
+      await setDoc(doc(db, COLLECTIONS.ANNOUNCEMENTS, announcement.id), announcement);
+      return announcement.id;
+    } else {
+      const { id, ...announcementData } = announcement;
+      const docRef = await addDoc(collection(db, COLLECTIONS.ANNOUNCEMENTS), announcementData);
+      return docRef.id;
+    }
+  } catch (error) {
+    console.error('Error saving announcement:', error);
+    throw error;
+  }
+};
+
+export const deleteAnnouncement = async (announcementId) => {
+  try {
+    await deleteDoc(doc(db, COLLECTIONS.ANNOUNCEMENTS, announcementId));
+  } catch (error) {
+    console.error('Error deleting announcement:', error);
+    throw error;
+  }
+};
+
+// Get random announcement (for homepage display)
+export const getRandomAnnouncement = async () => {
+  try {
+    const announcements = await getAnnouncements();
+    if (announcements.length === 0) return null;
+    const randomIndex = Math.floor(Math.random() * announcements.length);
+    return announcements[randomIndex];
+  } catch (error) {
+    console.error('Error getting random announcement:', error);
+    return null;
   }
 };
 

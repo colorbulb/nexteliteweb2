@@ -30,6 +30,7 @@ import {
   getPageContent,
   getSocialFeed,
   getLeads,
+  getAnnouncements,
   saveCourse,
   saveBlogPost,
   deleteCourse as deleteCourseFromDB,
@@ -40,6 +41,8 @@ import {
   savePageContent as savePageContentToDB,
   saveSocialFeed as saveSocialFeedToDB,
   saveLead as saveLeadToDB,
+  saveAnnouncement as saveAnnouncementToDB,
+  deleteAnnouncement as deleteAnnouncementFromDB,
   initializeFirestore
 } from './firebase/db.js';
 import { migrateToFirestore, forceMigrateToFirestore } from './firebase/migrate.js';
@@ -86,6 +89,7 @@ const App = () => {
   const [team, setTeam] = useState(TEAM);
   const [testimonials, setTestimonials] = useState(TESTIMONIALS);
   const [leads, setLeads] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // --- Navigation State ---
@@ -101,7 +105,7 @@ const App = () => {
         
         // Try to load from Firestore
         const [firestoreCourses, firestorePosts, firestoreTeam, firestoreTestimonials, 
-                firestoreSettings, firestorePageContent, firestoreSocialFeed, firestoreLeads] = 
+                firestoreSettings, firestorePageContent, firestoreSocialFeed, firestoreLeads, firestoreAnnouncements] = 
           await Promise.all([
             getCourses(),
             getBlogPosts(),
@@ -110,7 +114,8 @@ const App = () => {
             getSettings(),
             getPageContent(),
             getSocialFeed(),
-            getLeads()
+            getLeads(),
+            getAnnouncements()
           ]);
 
         // If Firestore has data, use it; otherwise initialize with constants.js
@@ -122,6 +127,7 @@ const App = () => {
           setTestimonials(firestoreTestimonials);
           setSocialFeed(firestoreSocialFeed);
           setLeads(firestoreLeads);
+          setAnnouncements(firestoreAnnouncements);
           
           // Settings and page content from Firestore
           if (firestoreSettings) {
@@ -397,6 +403,10 @@ const App = () => {
           onUpdatePageContent={updatePageContent}
           onUpdateTeam={updateTeam}
           onUpdateTestimonials={updateTestimonials}
+          announcements={announcements}
+          onAddAnnouncement={addAnnouncement}
+          onUpdateAnnouncement={updateAnnouncement}
+          onDeleteAnnouncement={deleteAnnouncement}
           onExit={() => handleNavigate('home')}
         />
       );
@@ -419,6 +429,7 @@ const App = () => {
           courses={courses} 
           content={pageContent.home}
           testimonials={testimonials}
+          announcements={announcements}
         />;
       case 'about':
         return <About 

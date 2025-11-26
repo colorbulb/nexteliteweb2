@@ -1,7 +1,8 @@
 import React from 'react';
 import { ArrowRight, Brain, Mic, BookOpen, Cpu, Star } from 'lucide-react';
+import { AnnouncementModal } from '../components/AnnouncementModal.jsx';
 
-export const Home = ({ onNavigate, onViewCourse, courses, content, testimonials }) => {
+export const Home = ({ onNavigate, onViewCourse, courses, content, testimonials, announcements }) => {
   // Show only featured courses (max 3), excluding disabled ones
   const featuredCourses = courses 
     ? courses.filter(c => c.featured && !c.disabled).slice(0, 3)
@@ -9,6 +10,7 @@ export const Home = ({ onNavigate, onViewCourse, courses, content, testimonials 
 
   return (
     <div className="flex flex-col w-full">
+      <AnnouncementModal />
       {/* Hero Section */}
       <section className="relative bg-secondary text-white py-24 md:py-36 overflow-hidden">
         {/* Abstract Background Shapes */}
