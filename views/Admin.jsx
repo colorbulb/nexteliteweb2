@@ -275,6 +275,9 @@ export const Admin = ({
           <button onClick={() => setView('leads')} className={`flex items-center w-full p-3 rounded transition ${view === 'leads' ? 'bg-primary' : 'hover:bg-slate-800'}`}>
             <Star size={20} className="mr-3" /> Leads ({leads.length})
           </button>
+          <button onClick={() => setView('announcements')} className={`flex items-center w-full p-3 rounded transition ${view === 'announcements' ? 'bg-primary' : 'hover:bg-slate-800'}`}>
+            <Star size={20} className="mr-3" /> Announcements
+          </button>
           <button onClick={() => setView('settings')} className={`flex items-center w-full p-3 rounded transition ${view === 'settings' ? 'bg-primary' : 'hover:bg-slate-800'}`}>
             <Settings size={20} className="mr-3" /> Settings
           </button>

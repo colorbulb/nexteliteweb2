@@ -93,9 +93,33 @@ const App = () => {
   const [loading, setLoading] = useState(true);
 
   // --- Navigation State ---
-  const [currentPage, setCurrentPage] = useState('home');
-  const [selectedCourseId, setSelectedCourseId] = useState(null);
-  const [selectedPostId, setSelectedPostId] = useState(null);
+  // Initialize from URL if available
+  const getInitialPage = () => {
+    const path = window.location.pathname;
+    if (path === '/' || path === '') return { page: 'home' };
+    if (path === '/about') return { page: 'about' };
+    if (path === '/courses') return { page: 'courses' };
+    if (path === '/blog') return { page: 'blog' };
+    if (path === '/contact') return { page: 'contact' };
+    if (path === '/admin') return { page: 'admin' };
+    if (path === '/migrate') return { page: 'migrate' };
+    if (path === '/flowbite-test') return { page: 'flowbite-test' };
+    if (path === '/enroll') return { page: 'enroll' };
+    if (path.startsWith('/course/')) {
+      const courseId = path.split('/course/')[1];
+      return { page: 'course-details', courseId };
+    }
+    if (path.startsWith('/blog/')) {
+      const postId = path.split('/blog/')[1];
+      return { page: 'blog-post', postId };
+    }
+    return { page: 'home' };
+  };
+
+  const initialPageData = getInitialPage();
+  const [currentPage, setCurrentPage] = useState(initialPageData.page);
+  const [selectedCourseId, setSelectedCourseId] = useState(initialPageData.courseId || null);
+  const [selectedPostId, setSelectedPostId] = useState(initialPageData.postId || null);
 
   // Load data from Firestore on mount
   useEffect(() => {
@@ -189,23 +213,77 @@ const App = () => {
     loadData();
   }, []);
 
+  // URL Routing - Sync URL with current page
+  useEffect(() => {
+    // Map page names to URL paths
+    const pageToPath = {
+      'home': '/',
+      'about': '/about',
+      'courses': '/courses',
+      'blog': '/blog',
+      'contact': '/contact',
+      'admin': '/admin',
+      'migrate': '/migrate',
+      'flowbite-test': '/flowbite-test',
+      'course-details': `/course/${selectedCourseId}`,
+      'blog-post': `/blog/${selectedPostId}`,
+      'enroll': '/enroll'
+    };
+
+    const path = pageToPath[currentPage] || '/';
+    
+    // Update URL without page reload
+    if (window.location.pathname !== path) {
+      window.history.pushState({ page: currentPage }, '', path);
+    }
+  }, [currentPage, selectedCourseId, selectedPostId]);
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = (e) => {
+      const path = window.location.pathname;
+      
+      // Map URL paths to page names
+      if (path === '/' || path === '') {
+        setCurrentPage('home');
+      } else if (path === '/about') {
+        setCurrentPage('about');
+      } else if (path === '/courses') {
+        setCurrentPage('courses');
+      } else if (path === '/blog') {
+        setCurrentPage('blog');
+      } else if (path === '/contact') {
+        setCurrentPage('contact');
+      } else if (path === '/admin') {
+        setCurrentPage('admin');
+      } else if (path === '/migrate') {
+        setCurrentPage('migrate');
+      } else if (path === '/flowbite-test') {
+        setCurrentPage('flowbite-test');
+      } else if (path === '/enroll') {
+        setCurrentPage('enroll');
+      } else if (path.startsWith('/course/')) {
+        const courseId = path.split('/course/')[1];
+        setSelectedCourseId(courseId);
+        setCurrentPage('course-details');
+      } else if (path.startsWith('/blog/')) {
+        const postId = path.split('/blog/')[1];
+        setSelectedPostId(postId);
+        setCurrentPage('blog-post');
+      }
+    };
+
+    // Check initial URL on mount
+    handlePopState({});
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   // Scroll to top on page change
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentPage]);
-
-  // Handle hash-based routing for migration page
-  useEffect(() => {
-    const handleHashChange = () => {
-      if (window.location.hash === '#migrate') {
-        setCurrentPage('migrate');
-      }
-    };
-    
-    handleHashChange(); // Check on mount
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
 
   const handleNavigate = (page) => {
     setCurrentPage(page);
@@ -503,8 +581,7 @@ const App = () => {
   if (loading) {
     return (
       <div className="flex flex-col min-h-screen font-sans text-slate-900 bg-surface relative items-center justify-center">
-        <div className="text-xl font-bold text-slate-700">Loading from Firestore...</div>
-        <div className="text-sm text-slate-500 mt-2">If this is your first time, data is being migrated from constants.js</div>
+        <div className="text-xl font-bold text-slate-700">Loading...</div>
       </div>
     );
   }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArrowRight, Brain, Mic, BookOpen, Cpu, Star } from 'lucide-react';
-import { AnnouncementModal } from '../components/AnnouncementModal';
+import { AnnouncementModal } from '../components/AnnouncementModal.jsx';
 
 export const Home = ({ onNavigate, onViewCourse, courses, content, testimonials, announcements }) => {
   // Show only featured courses (max 3), excluding disabled ones
