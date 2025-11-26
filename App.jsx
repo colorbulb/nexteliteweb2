@@ -380,6 +380,41 @@ const App = () => {
     }
   };
 
+  const addAnnouncement = async (announcementData) => {
+    try {
+      const newAnnouncement = {
+        ...announcementData,
+        id: announcementData.id || `announcement-${Date.now()}`
+      };
+      await saveAnnouncementToDB(newAnnouncement);
+      setAnnouncements([...announcements, newAnnouncement]);
+      return newAnnouncement;
+    } catch (error) {
+      console.error('Error adding announcement:', error);
+      throw error;
+    }
+  };
+
+  const updateAnnouncement = async (announcementData) => {
+    try {
+      await saveAnnouncementToDB(announcementData);
+      setAnnouncements(announcements.map(a => a.id === announcementData.id ? announcementData : a));
+    } catch (error) {
+      console.error('Error updating announcement:', error);
+      throw error;
+    }
+  };
+
+  const deleteAnnouncement = async (announcementId) => {
+    try {
+      await deleteAnnouncementFromDB(announcementId);
+      setAnnouncements(announcements.filter(a => a.id !== announcementId));
+    } catch (error) {
+      console.error('Error deleting announcement:', error);
+      throw error;
+    }
+  };
+
   // --- Routing Logic ---
   const renderPage = () => {
     if (currentPage === 'admin') {
