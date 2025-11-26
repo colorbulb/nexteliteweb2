@@ -123,6 +123,22 @@ export const saveAllBlogPosts = async (posts) => {
   }
 };
 
+// Get next blog post ID (auto-increment)
+export const getNextBlogPostId = async () => {
+  try {
+    const posts = await getBlogPosts();
+    if (posts.length === 0) return '1';
+    const maxId = Math.max(...posts.map(p => {
+      const numId = parseInt(p.id);
+      return isNaN(numId) ? 0 : numId;
+    }));
+    return String(maxId + 1);
+  } catch (error) {
+    console.error('Error getting next blog post ID:', error);
+    return String(Date.now());
+  }
+};
+
 // ===== TEAM =====
 export const getTeam = async () => {
   try {
@@ -319,4 +335,3 @@ export const initializeFirestore = async (initialData) => {
     throw error;
   }
 };
-

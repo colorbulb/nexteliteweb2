@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, Star } from 'lucide-react';
+import { TextEditor } from '../components/TextEditor.jsx';
+import { ImageUpload } from '../components/ImageUpload.jsx';
+import { getCategories, getInstructors, getLevels } from '../firebase/lists.js';
 
 export const CourseEditor = ({ course, courses, onSave, onClose }) => {
   const [formData, setFormData] = useState({
@@ -11,7 +14,7 @@ export const CourseEditor = ({ course, courses, onSave, onClose }) => {
     instructor: '',
     duration: '',
     level: '',
-    image: '',
+    images: [],
     featured: false,
     disabled: false,
     syllabus: [],
@@ -28,6 +31,24 @@ export const CourseEditor = ({ course, courses, onSave, onClose }) => {
   const [syllabusItem, setSyllabusItem] = useState('');
   const [previewType, setPreviewType] = useState('quiz');
   const [quizQuestion, setQuizQuestion] = useState({ question: '', options: ['', '', '', ''], correctAnswer: 0 });
+  const [editingQuizIndex, setEditingQuizIndex] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [instructors, setInstructors] = useState([]);
+  const [levels, setLevels] = useState([]);
+
+  useEffect(() => {
+    const loadLists = async () => {
+      const [cats, insts, levs] = await Promise.all([
+        getCategories(),
+        getInstructors(),
+        getLevels()
+      ]);
+      setCategories(cats);
+      setInstructors(insts);
+      setLevels(levs);
+    };
+    loadLists();
+  }, []);
 
   const featuredCount = courses.filter(c => c.featured && !c.disabled).length;
   const canFeature = !formData.disabled && (formData.featured || featuredCount < 3);
@@ -43,7 +64,7 @@ export const CourseEditor = ({ course, courses, onSave, onClose }) => {
         instructor: course.instructor || '',
         duration: course.duration || '',
         level: course.level || '',
-        image: course.image || '',
+        images: course.images || (course.image ? [course.image] : []),
         featured: course.featured || false,
         disabled: course.disabled || false,
         syllabus: course.syllabus || [],
@@ -74,6 +95,7 @@ export const CourseEditor = ({ course, courses, onSave, onClose }) => {
 
     const courseData = {
       ...formData,
+      image: formData.images[0] || '', // First image as main image
       preview: {
         type: previewType,
         title: formData.preview.title,
@@ -155,14 +177,17 @@ export const CourseEditor = ({ course, courses, onSave, onClose }) => {
             </div>
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">Category *</label>
-              <input
-                type="text"
+              <select
                 required
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-primary"
-                placeholder="Logic"
-              />
+              >
+                <option value="">Select Category</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.name}>{cat.name}</option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -189,24 +214,27 @@ export const CourseEditor = ({ course, courses, onSave, onClose }) => {
 
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">Full Description *</label>
-            <textarea
-              required
+            <TextEditor
               value={formData.fullDescription}
-              onChange={(e) => setFormData({ ...formData, fullDescription: e.target.value })}
-              className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-primary h-32"
+              onChange={(value) => setFormData({ ...formData, fullDescription: value })}
+              placeholder="Enter full course description..."
             />
           </div>
 
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">Instructor *</label>
-              <input
-                type="text"
+              <select
                 required
                 value={formData.instructor}
                 onChange={(e) => setFormData({ ...formData, instructor: e.target.value })}
                 className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-primary"
-              />
+              >
+                <option value="">Select Instructor</option>
+                {instructors.map(inst => (
+                  <option key={inst.id} value={inst.name}>{inst.name}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">Duration *</label>
@@ -221,26 +249,30 @@ export const CourseEditor = ({ course, courses, onSave, onClose }) => {
             </div>
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">Level *</label>
-              <input
-                type="text"
+              <select
                 required
                 value={formData.level}
                 onChange={(e) => setFormData({ ...formData, level: e.target.value })}
                 className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-primary"
-                placeholder="Middle School"
-              />
+              >
+                <option value="">Select Level</option>
+                {levels.map(level => (
+                  <option key={level.id} value={level.name}>{level.name}</option>
+                ))}
+              </select>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1">Image URL *</label>
-            <input
-              type="url"
-              required
-              value={formData.image}
-              onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-              className="w-full p-2 border border-slate-300 rounded focus:outline-none focus:border-primary"
+            <label className="block text-sm font-bold text-slate-700 mb-1">Images (Multiple, Drag & Drop) *</label>
+            <ImageUpload
+              images={formData.images}
+              onChange={(images) => setFormData({ ...formData, images })}
+              multiple={true}
             />
+            <p className="text-xs text-slate-500 mt-1">
+              First image will be used as the main featured image.
+            </p>
           </div>
 
           {/* Flags */}
@@ -398,68 +430,151 @@ export const CourseEditor = ({ course, courses, onSave, onClose }) => {
                     <div key={qIndex} className="bg-slate-50 p-4 rounded border border-slate-200">
                       <div className="flex justify-between items-center mb-2">
                         <span className="font-bold text-sm">Question {qIndex + 1}</span>
-                        <button
-                          type="button"
-                          onClick={() => removeQuizQuestion(qIndex)}
-                          className="text-red-500 hover:text-red-700 text-sm"
-                        >
-                          Remove
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingQuizIndex(qIndex);
+                              setQuizQuestion({ ...q });
+                            }}
+                            className="text-blue-500 hover:text-blue-700 text-sm"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeQuizQuestion(qIndex)}
+                            className="text-red-500 hover:text-red-700 text-sm"
+                          >
+                            Remove
+                          </button>
+                        </div>
                       </div>
-                      <p className="text-sm mb-2">{q.question}</p>
-                      <ul className="text-xs space-y-1">
-                        {q.options.map((opt, optIndex) => (
-                          <li key={optIndex} className={optIndex === q.correctAnswer ? 'text-green-600 font-bold' : ''}>
-                            {optIndex === q.correctAnswer ? '✓ ' : ''}{opt}
-                          </li>
-                        ))}
-                      </ul>
+                      {editingQuizIndex === qIndex ? (
+                        <div className="space-y-3 mt-3">
+                          <div>
+                            <label className="block text-sm font-bold mb-1">Question</label>
+                            <input
+                              type="text"
+                              value={quizQuestion.question}
+                              onChange={(e) => setQuizQuestion({ ...quizQuestion, question: e.target.value })}
+                              className="w-full p-2 border border-slate-300 rounded"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-bold mb-1">Options</label>
+                            {quizQuestion.options.map((opt, optIndex) => (
+                              <div key={optIndex} className="flex items-center gap-2 mb-2">
+                                <input
+                                  type="radio"
+                                  name={`correctAnswer-${qIndex}`}
+                                  checked={quizQuestion.correctAnswer === optIndex}
+                                  onChange={() => setQuizQuestion({ ...quizQuestion, correctAnswer: optIndex })}
+                                  className="w-4 h-4"
+                                />
+                                <input
+                                  type="text"
+                                  value={opt}
+                                  onChange={(e) => {
+                                    const newOptions = [...quizQuestion.options];
+                                    newOptions[optIndex] = e.target.value;
+                                    setQuizQuestion({ ...quizQuestion, options: newOptions });
+                                  }}
+                                  className="flex-1 p-2 border border-slate-300 rounded"
+                                  placeholder={`Option ${optIndex + 1}`}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newQuizData = [...formData.preview.quizData];
+                                newQuizData[qIndex] = { ...quizQuestion };
+                                setFormData({
+                                  ...formData,
+                                  preview: { ...formData.preview, quizData: newQuizData }
+                                });
+                                setEditingQuizIndex(null);
+                                setQuizQuestion({ question: '', options: ['', '', '', ''], correctAnswer: 0 });
+                              }}
+                              className="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-green-700"
+                            >
+                              Save Changes
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingQuizIndex(null);
+                                setQuizQuestion({ question: '', options: ['', '', '', ''], correctAnswer: 0 });
+                              }}
+                              className="bg-slate-300 text-slate-700 px-4 py-2 rounded text-sm font-bold hover:bg-slate-400"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-sm mb-2">{q.question}</p>
+                          <ul className="text-xs space-y-1">
+                            {q.options.map((opt, optIndex) => (
+                              <li key={optIndex} className={optIndex === q.correctAnswer ? 'text-green-600 font-bold' : ''}>
+                                {optIndex === q.correctAnswer ? '✓ ' : ''}{opt}
+                              </li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
-                <div className="border border-slate-300 rounded p-4 space-y-3">
-                  <div>
-                    <label className="block text-sm font-bold mb-1">Question</label>
-                    <input
-                      type="text"
-                      value={quizQuestion.question}
-                      onChange={(e) => setQuizQuestion({ ...quizQuestion, question: e.target.value })}
-                      className="w-full p-2 border border-slate-300 rounded"
-                    />
+                {editingQuizIndex === null && (
+                  <div className="border border-slate-300 rounded p-4 space-y-3">
+                    <div>
+                      <label className="block text-sm font-bold mb-1">Question</label>
+                      <input
+                        type="text"
+                        value={quizQuestion.question}
+                        onChange={(e) => setQuizQuestion({ ...quizQuestion, question: e.target.value })}
+                        className="w-full p-2 border border-slate-300 rounded"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold mb-1">Options</label>
+                      {quizQuestion.options.map((opt, optIndex) => (
+                        <div key={optIndex} className="flex items-center gap-2 mb-2">
+                          <input
+                            type="radio"
+                            name="correctAnswer"
+                            checked={quizQuestion.correctAnswer === optIndex}
+                            onChange={() => setQuizQuestion({ ...quizQuestion, correctAnswer: optIndex })}
+                            className="w-4 h-4"
+                          />
+                          <input
+                            type="text"
+                            value={opt}
+                            onChange={(e) => {
+                              const newOptions = [...quizQuestion.options];
+                              newOptions[optIndex] = e.target.value;
+                              setQuizQuestion({ ...quizQuestion, options: newOptions });
+                            }}
+                            className="flex-1 p-2 border border-slate-300 rounded"
+                            placeholder={`Option ${optIndex + 1}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={addQuizQuestion}
+                      className="bg-primary text-white px-4 py-2 rounded text-sm font-bold hover:bg-blue-600"
+                    >
+                      Add Question
+                    </button>
                   </div>
-                  <div>
-                    <label className="block text-sm font-bold mb-1">Options</label>
-                    {quizQuestion.options.map((opt, optIndex) => (
-                      <div key={optIndex} className="flex items-center gap-2 mb-2">
-                        <input
-                          type="radio"
-                          name="correctAnswer"
-                          checked={quizQuestion.correctAnswer === optIndex}
-                          onChange={() => setQuizQuestion({ ...quizQuestion, correctAnswer: optIndex })}
-                          className="w-4 h-4"
-                        />
-                        <input
-                          type="text"
-                          value={opt}
-                          onChange={(e) => {
-                            const newOptions = [...quizQuestion.options];
-                            newOptions[optIndex] = e.target.value;
-                            setQuizQuestion({ ...quizQuestion, options: newOptions });
-                          }}
-                          className="flex-1 p-2 border border-slate-300 rounded"
-                          placeholder={`Option ${optIndex + 1}`}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={addQuizQuestion}
-                    className="bg-primary text-white px-4 py-2 rounded text-sm font-bold hover:bg-blue-600"
-                  >
-                    Add Question
-                  </button>
-                </div>
+                )}
               </div>
             )}
           </div>

@@ -4,6 +4,7 @@ import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebas
 import { auth } from '../firebase/config.js';
 import { CourseEditor } from './CourseEditor.jsx';
 import { BlogEditor } from './BlogEditor.jsx';
+import { ListManager } from './ListManager.jsx';
 
 export const Admin = ({ 
   courses, 
@@ -26,7 +27,7 @@ export const Admin = ({
   onUpdateTestimonials,
   onExit 
 }) => {
-  const [view, setView] = useState('login'); // login, dashboard, content, pages, team, leads, settings
+  const [view, setView] = useState('login'); // login, dashboard, content, pages, team, leads, settings, lists
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -257,6 +258,9 @@ export const Admin = ({
           <button onClick={() => setView('settings')} className={`flex items-center w-full p-3 rounded transition ${view === 'settings' ? 'bg-primary' : 'hover:bg-slate-800'}`}>
             <Settings size={20} className="mr-3" /> Settings
           </button>
+          <button onClick={() => setView('lists')} className={`flex items-center w-full p-3 rounded transition ${view === 'lists' ? 'bg-primary' : 'hover:bg-slate-800'}`}>
+            <Database size={20} className="mr-3" /> Lists
+          </button>
         </nav>
         <div className="p-4 border-t border-slate-800">
           <div className="text-xs text-slate-500 mb-2 px-3">
@@ -305,7 +309,18 @@ export const Admin = ({
         {/* PAGES TEXT EDITOR VIEW */}
         {view === 'pages' && (
           <div>
-            <h1 className="text-3xl font-bold mb-8 text-slate-800">Page Content Editor</h1>
+            <div className="flex justify-between items-center mb-8">
+              <h1 className="text-3xl font-bold text-slate-800">Page Content Editor</h1>
+              <button
+                onClick={() => {
+                  // Save is already happening on change, but add explicit save button
+                  alert('Page content saved! Changes are saved automatically as you type.');
+                }}
+                className="bg-primary text-white px-6 py-3 rounded font-bold hover:bg-blue-600 transition flex items-center gap-2"
+              >
+                <Save size={18} /> Save All Changes
+              </button>
+            </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
@@ -626,6 +641,7 @@ export const Admin = ({
         {showBlogModal && (
           <BlogEditor
             post={editingBlog}
+            team={team}
             onSave={handleSaveBlogPost}
             onClose={() => {
               setShowBlogModal(false);
@@ -674,6 +690,18 @@ export const Admin = ({
                 </table>
               </div>
             )}
+          </div>
+        )}
+
+        {/* LISTS MANAGEMENT VIEW */}
+        {view === 'lists' && (
+          <div>
+            <h1 className="text-3xl font-bold mb-8 text-slate-800">List Management</h1>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <ListManager listType="categories" />
+              <ListManager listType="instructors" />
+              <ListManager listType="levels" />
+            </div>
           </div>
         )}
 

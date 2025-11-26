@@ -10,6 +10,7 @@ export const Header = ({ currentPage, onNavigate, settings }) => {
     { label: 'Courses', value: 'courses' },
     { label: 'Blog', value: 'blog' },
     { label: 'Contact', value: 'contact' },
+    { label: 'Flowbite Test', value: 'flowbite-test' },
   ];
 
   const handleNavClick = (page) => {

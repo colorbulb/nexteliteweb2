@@ -11,6 +11,7 @@ import { Blog } from './views/Blog.jsx';
 import { BlogPostView } from './views/BlogPost.jsx';
 import { Admin } from './views/Admin.jsx';
 import { Migrate } from './views/Migrate.jsx';
+import { FlowbiteTest } from './views/FlowbiteTest.jsx';
 import { 
   INITIAL_COURSES, 
   INITIAL_BLOG_POSTS, 
@@ -403,6 +404,10 @@ const App = () => {
 
     if (currentPage === 'migrate') {
       return <Migrate />;
+    }
+
+    if (currentPage === 'flowbite-test') {
+      return <FlowbiteTest onNavigate={handleNavigate} />;
     }
 
     // Public Pages
