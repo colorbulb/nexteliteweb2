@@ -32,7 +32,8 @@ export const AnnouncementEditor = ({ announcements, onSave, onDelete, onClose })
         image: '',
         content: '',
         buttonText: '',
-        buttonUrl: ''
+        buttonUrl: '',
+        disabled: false
       });
     }
   }, [editingIndex, announcements]);
@@ -58,7 +59,8 @@ export const AnnouncementEditor = ({ announcements, onSave, onDelete, onClose })
         image: '',
         content: '',
         buttonText: '',
-        buttonUrl: ''
+        buttonUrl: '',
+        disabled: false
       });
     } catch (error) {
       console.error('Error saving announcement:', error);
@@ -194,6 +196,19 @@ export const AnnouncementEditor = ({ announcements, onSave, onDelete, onClose })
                     placeholder="https://example.com"
                   />
                 </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="announcementDisabled"
+                  checked={formData.disabled}
+                  onChange={(e) => setFormData({ ...formData, disabled: e.target.checked })}
+                  className="w-4 h-4 text-primary rounded focus:ring-primary"
+                />
+                <label htmlFor="announcementDisabled" className="text-sm font-bold text-slate-700 cursor-pointer">
+                  Disable Announcement (won't show on homepage)
+                </label>
               </div>
 
               <div className="flex gap-4 pt-4 border-t border-slate-200">
