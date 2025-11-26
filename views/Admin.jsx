@@ -6,6 +6,7 @@ import { CourseEditor } from './CourseEditor.jsx';
 import { BlogEditor } from './BlogEditor.jsx';
 import { ListManager } from './ListManager.jsx';
 import { AnnouncementEditor } from './AnnouncementEditor.jsx';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import { 
   Container, 
   Row, 
@@ -68,6 +69,7 @@ export const Admin = ({
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
   const [editingBlog, setEditingBlog] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Listen for auth state changes
   useEffect(() => {
@@ -274,8 +276,6 @@ export const Admin = ({
   }
 
   // --- CMS Layout ---
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
   return (
     <Container fluid className="p-0 min-vh-100">
       <Row className="g-0">
