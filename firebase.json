@@ -17,6 +17,12 @@
         "firebase-debug.log",
         "firebase-debug.*.log",
         "functions"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
       ]
     }
   ]

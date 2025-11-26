@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Calendar, User, ArrowRight, Search, Instagram, Facebook, Heart } from 'lucide-react';
+import { Pagination } from 'flowbite-react';
 
 export const Blog = ({ onViewPost, posts, socialFeed }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
 
   // Combine blog posts and social feed posts, sorted by date (newest first)
   const allContent = [
@@ -24,6 +27,17 @@ export const Blog = ({ onViewPost, posts, socialFeed }) => {
     (item.excerpt && item.excerpt.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (item.category && item.category.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredContent.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedContent = filteredContent.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search term changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   return (
     <div className="w-full bg-slate-50 min-h-screen pb-20">
@@ -52,9 +66,9 @@ export const Blog = ({ onViewPost, posts, socialFeed }) => {
         </div>
 
         {/* Combined Blog & Social Feed Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-20">
-          {filteredContent.length > 0 ? (
-            filteredContent.map(item => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-10">
+          {paginatedContent.length > 0 ? (
+            paginatedContent.map(item => {
               if (item.type === 'social') {
                 // Social media post card
                 return (
@@ -124,6 +138,19 @@ export const Blog = ({ onViewPost, posts, socialFeed }) => {
             </div>
           )}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center mb-10">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              showIcons
+              className="flex items-center"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
