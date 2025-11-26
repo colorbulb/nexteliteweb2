@@ -11,6 +11,9 @@ export const Courses = ({ onViewCourse, courses }) => {
   const courseList = courses || [];
 
   const filteredCourses = courseList.filter(course => {
+    // Exclude disabled courses
+    if (course.disabled) return false;
+    
     const matchesCategory = filter === 'All' || course.category === filter;
     const matchesSearch = course.title.toLowerCase().includes(search.toLowerCase()) || 
                           course.shortDescription.toLowerCase().includes(search.toLowerCase());

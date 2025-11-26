@@ -10,6 +10,7 @@ import { Enroll } from './views/Enroll.jsx';
 import { Blog } from './views/Blog.jsx';
 import { BlogPostView } from './views/BlogPost.jsx';
 import { Admin } from './views/Admin.jsx';
+import { Migrate } from './views/Migrate.jsx';
 import { 
   INITIAL_COURSES, 
   INITIAL_BLOG_POSTS, 
@@ -40,6 +41,7 @@ import {
   saveLead as saveLeadToDB,
   initializeFirestore
 } from './firebase/db.js';
+import { migrateToFirestore, forceMigrateToFirestore } from './firebase/migrate.js';
 
 // Animated Background Component
 const AnimatedBackground = () => (
@@ -112,14 +114,24 @@ const App = () => {
 
         // If Firestore has data, use it; otherwise initialize with constants.js
         if (firestoreCourses.length > 0) {
+          // Firestore has data - use it
           setCourses(firestoreCourses);
           setBlogPosts(firestorePosts);
           setTeam(firestoreTeam);
           setTestimonials(firestoreTestimonials);
           setSocialFeed(firestoreSocialFeed);
           setLeads(firestoreLeads);
+          
+          // Settings and page content from Firestore
+          if (firestoreSettings) {
+            setSettings(firestoreSettings);
+          }
+          if (firestorePageContent) {
+            setPageContent(firestorePageContent);
+          }
         } else {
-          // Initialize Firestore with constants.js data
+          // Firestore is empty - initialize with constants.js data
+          console.log('Firestore is empty. Initializing with constants.js data...');
           await initializeFirestore({
             courses: INITIAL_COURSES,
             blogPosts: INITIAL_BLOG_POSTS,
@@ -129,14 +141,35 @@ const App = () => {
             pageContent: INITIAL_PAGE_CONTENT,
             socialFeed: INITIAL_SOCIAL_FEED
           });
-        }
-
-        // Settings and page content (always try to load, fallback to constants)
-        if (firestoreSettings) {
-          setSettings(firestoreSettings);
-        }
-        if (firestorePageContent) {
-          setPageContent(firestorePageContent);
+          
+          // After initialization, reload from Firestore to get the saved data
+          const [reloadedCourses, reloadedPosts, reloadedTeam, reloadedTestimonials, 
+                  reloadedSettings, reloadedPageContent, reloadedSocialFeed] = 
+            await Promise.all([
+              getCourses(),
+              getBlogPosts(),
+              getTeam(),
+              getTestimonials(),
+              getSettings(),
+              getPageContent(),
+              getSocialFeed()
+            ]);
+          
+          // Update state with Firestore data
+          setCourses(reloadedCourses);
+          setBlogPosts(reloadedPosts);
+          setTeam(reloadedTeam);
+          setTestimonials(reloadedTestimonials);
+          setSocialFeed(reloadedSocialFeed);
+          
+          if (reloadedSettings) {
+            setSettings(reloadedSettings);
+          }
+          if (reloadedPageContent) {
+            setPageContent(reloadedPageContent);
+          }
+          
+          console.log('✅ Firestore initialized and data loaded');
         }
       } catch (error) {
         console.error('Error loading data from Firestore:', error);
@@ -153,6 +186,19 @@ const App = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentPage]);
+
+  // Handle hash-based routing for migration page
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (window.location.hash === '#migrate') {
+        setCurrentPage('migrate');
+      }
+    };
+    
+    handleHashChange(); // Check on mount
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   const handleNavigate = (page) => {
     setCurrentPage(page);
@@ -201,6 +247,33 @@ const App = () => {
     }
   };
 
+  const addCourse = async (courseData) => {
+    try {
+      const newCourse = {
+        ...courseData,
+        id: courseData.id || `course-${Date.now()}`,
+        featured: courseData.featured || false,
+        disabled: courseData.disabled || false
+      };
+      await saveCourse(newCourse);
+      setCourses([...courses, newCourse]);
+      return newCourse;
+    } catch (error) {
+      console.error('Error adding course:', error);
+      throw error;
+    }
+  };
+
+  const updateCourse = async (courseData) => {
+    try {
+      await saveCourse(courseData);
+      setCourses(courses.map(c => c.id === courseData.id ? courseData : c));
+    } catch (error) {
+      console.error('Error updating course:', error);
+      throw error;
+    }
+  };
+
   const deleteCourse = async (id) => {
     try {
       await deleteCourseFromDB(id);
@@ -209,6 +282,32 @@ const App = () => {
       console.error('Error deleting course:', error);
       // Still update local state on error
       setCourses(courses.filter(c => c.id !== id));
+    }
+  };
+
+  const addBlogPost = async (postData) => {
+    try {
+      const newPost = {
+        ...postData,
+        id: postData.id || `post-${Date.now()}`,
+        date: postData.date || new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      };
+      await saveBlogPost(newPost);
+      setBlogPosts([...blogPosts, newPost]);
+      return newPost;
+    } catch (error) {
+      console.error('Error adding blog post:', error);
+      throw error;
+    }
+  };
+
+  const updateBlogPost = async (postData) => {
+    try {
+      await saveBlogPost(postData);
+      setBlogPosts(blogPosts.map(p => p.id === postData.id ? postData : p));
+    } catch (error) {
+      console.error('Error updating blog post:', error);
+      throw error;
     }
   };
 
@@ -287,7 +386,11 @@ const App = () => {
           team={team}
           testimonials={testimonials}
           onUpdateSettings={updateSettings}
+          onAddCourse={addCourse}
+          onUpdateCourse={updateCourse}
           onDeleteCourse={deleteCourse}
+          onAddBlogPost={addBlogPost}
+          onUpdateBlogPost={updateBlogPost}
           onDeletePost={deleteBlogPost}
           onSyncSocial={syncSocialMedia}
           onUpdatePageContent={updatePageContent}
@@ -296,6 +399,10 @@ const App = () => {
           onExit={() => handleNavigate('home')}
         />
       );
+    }
+
+    if (currentPage === 'migrate') {
+      return <Migrate />;
     }
 
     // Public Pages
@@ -334,10 +441,19 @@ const App = () => {
     }
   };
 
+  // Make migration functions available globally for console access
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.migrateToFirestore = migrateToFirestore;
+      window.forceMigrateToFirestore = forceMigrateToFirestore;
+    }
+  }, []);
+
   if (loading) {
     return (
       <div className="flex flex-col min-h-screen font-sans text-slate-900 bg-surface relative items-center justify-center">
-        <div className="text-xl font-bold text-slate-700">Loading...</div>
+        <div className="text-xl font-bold text-slate-700">Loading from Firestore...</div>
+        <div className="text-sm text-slate-500 mt-2">If this is your first time, data is being migrated from constants.js</div>
       </div>
     );
   }

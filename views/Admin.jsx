@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, FileText, Users, Settings, LogOut, Database, RefreshCw, Trash2, Plus, Download, Type, Star } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, Settings, LogOut, Database, RefreshCw, Trash2, Plus, Download, Type, Star, Edit, X, Save, Eye, EyeOff } from 'lucide-react';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/config.js';
+import { CourseEditor } from './CourseEditor.jsx';
+import { BlogEditor } from './BlogEditor.jsx';
 
 export const Admin = ({ 
   courses, 
@@ -12,7 +14,11 @@ export const Admin = ({
   team,
   testimonials,
   onUpdateSettings, 
+  onAddCourse,
+  onUpdateCourse,
   onDeleteCourse, 
+  onAddBlogPost,
+  onUpdateBlogPost,
   onDeletePost, 
   onSyncSocial,
   onUpdatePageContent,
@@ -26,6 +32,12 @@ export const Admin = ({
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
+  
+  // Modal states
+  const [showCourseModal, setShowCourseModal] = useState(false);
+  const [showBlogModal, setShowBlogModal] = useState(false);
+  const [editingCourse, setEditingCourse] = useState(null);
+  const [editingBlog, setEditingBlog] = useState(null);
 
   // Listen for auth state changes
   useEffect(() => {
@@ -67,6 +79,58 @@ export const Admin = ({
       setPassword('');
     } catch (error) {
       console.error('Logout error:', error);
+    }
+  };
+
+  // Course editor handlers
+  const handleAddCourse = () => {
+    setEditingCourse(null);
+    setShowCourseModal(true);
+  };
+
+  const handleEditCourse = (course) => {
+    setEditingCourse(course);
+    setShowCourseModal(true);
+  };
+
+  const handleSaveCourse = async (courseData) => {
+    try {
+      if (editingCourse) {
+        await onUpdateCourse(courseData);
+      } else {
+        await onAddCourse(courseData);
+      }
+      setShowCourseModal(false);
+      setEditingCourse(null);
+    } catch (error) {
+      console.error('Error saving course:', error);
+      alert('Error saving course: ' + error.message);
+    }
+  };
+
+  // Blog editor handlers
+  const handleAddBlogPost = () => {
+    setEditingBlog(null);
+    setShowBlogModal(true);
+  };
+
+  const handleEditBlogPost = (post) => {
+    setEditingBlog(post);
+    setShowBlogModal(true);
+  };
+
+  const handleSaveBlogPost = async (postData) => {
+    try {
+      if (editingBlog) {
+        await onUpdateBlogPost(postData);
+      } else {
+        await onAddBlogPost(postData);
+      }
+      setShowBlogModal(false);
+      setEditingBlog(null);
+    } catch (error) {
+      console.error('Error saving blog post:', error);
+      alert('Error saving blog post: ' + error.message);
     }
   };
 
@@ -397,8 +461,18 @@ export const Admin = ({
             
             <div className="mb-12">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Courses</h2>
-                <button className="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2">
+                <div>
+                  <h2 className="text-xl font-bold">Courses</h2>
+                  <p className="text-sm text-slate-500">
+                    Featured: {courses.filter(c => c.featured && !c.disabled).length}/3 | 
+                    Total: {courses.length} | 
+                    Disabled: {courses.filter(c => c.disabled).length}
+                  </p>
+                </div>
+                <button 
+                  onClick={handleAddCourse}
+                  className="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-green-700 transition"
+                >
                   <Plus size={16} /> Add Course
                 </button>
               </div>
@@ -408,18 +482,61 @@ export const Admin = ({
                     <tr>
                       <th className="p-4 font-bold text-slate-700">Title</th>
                       <th className="p-4 font-bold text-slate-700">Category</th>
+                      <th className="p-4 font-bold text-slate-700">Status</th>
                       <th className="p-4 font-bold text-slate-700">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {courses.map(course => (
-                      <tr key={course.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                        <td className="p-4">{course.title}</td>
-                        <td className="p-4"><span className="bg-slate-100 px-2 py-1 rounded text-xs font-bold">{course.category}</span></td>
+                      <tr 
+                        key={course.id} 
+                        className={`border-b border-slate-100 last:border-0 hover:bg-slate-50 ${course.disabled ? 'opacity-50' : ''}`}
+                      >
                         <td className="p-4">
-                          <button onClick={() => onDeleteCourse(course.id)} className="text-red-500 hover:text-red-700 p-2">
-                            <Trash2 size={18} />
-                          </button>
+                          <div className="flex items-center gap-2">
+                            {course.featured && !course.disabled && (
+                              <Star size={16} className="text-yellow-500 fill-yellow-500" />
+                            )}
+                            {course.disabled && (
+                              <EyeOff size={16} className="text-slate-400" />
+                            )}
+                            <span className={course.disabled ? 'line-through' : ''}>{course.title}</span>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <span className="bg-slate-100 px-2 py-1 rounded text-xs font-bold">{course.category}</span>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex gap-2">
+                            {course.featured && !course.disabled && (
+                              <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">Featured</span>
+                            )}
+                            {course.disabled && (
+                              <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">Disabled</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={() => handleEditCourse(course)} 
+                              className="text-blue-500 hover:text-blue-700 p-2"
+                              title="Edit"
+                            >
+                              <Edit size={18} />
+                            </button>
+                            <button 
+                              onClick={() => {
+                                if (window.confirm(`Are you sure you want to delete "${course.title}"?`)) {
+                                  onDeleteCourse(course.id);
+                                }
+                              }} 
+                              className="text-red-500 hover:text-red-700 p-2"
+                              title="Delete"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -430,8 +547,14 @@ export const Admin = ({
 
             <div>
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Blog Posts</h2>
-                <button className="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2">
+                <div>
+                  <h2 className="text-xl font-bold">Blog Posts</h2>
+                  <p className="text-sm text-slate-500">Total: {blogPosts.length}</p>
+                </div>
+                <button 
+                  onClick={handleAddBlogPost}
+                  className="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-green-700 transition"
+                >
                   <Plus size={16} /> Add Post
                 </button>
               </div>
@@ -441,6 +564,7 @@ export const Admin = ({
                     <tr>
                       <th className="p-4 font-bold text-slate-700">Title</th>
                       <th className="p-4 font-bold text-slate-700">Author</th>
+                      <th className="p-4 font-bold text-slate-700">Category</th>
                       <th className="p-4 font-bold text-slate-700">Date</th>
                       <th className="p-4 font-bold text-slate-700">Actions</th>
                     </tr>
@@ -448,13 +572,33 @@ export const Admin = ({
                   <tbody>
                     {blogPosts.map(post => (
                       <tr key={post.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                        <td className="p-4">{post.title}</td>
+                        <td className="p-4 font-medium">{post.title}</td>
                         <td className="p-4">{post.author}</td>
+                        <td className="p-4">
+                          <span className="bg-slate-100 px-2 py-1 rounded text-xs font-bold">{post.category}</span>
+                        </td>
                         <td className="p-4 text-sm text-slate-500">{post.date}</td>
                         <td className="p-4">
-                          <button onClick={() => onDeletePost(post.id)} className="text-red-500 hover:text-red-700 p-2">
-                            <Trash2 size={18} />
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={() => handleEditBlogPost(post)} 
+                              className="text-blue-500 hover:text-blue-700 p-2"
+                              title="Edit"
+                            >
+                              <Edit size={18} />
+                            </button>
+                            <button 
+                              onClick={() => {
+                                if (window.confirm(`Are you sure you want to delete "${post.title}"?`)) {
+                                  onDeletePost(post.id);
+                                }
+                              }} 
+                              className="text-red-500 hover:text-red-700 p-2"
+                              title="Delete"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -463,6 +607,31 @@ export const Admin = ({
               </div>
             </div>
           </div>
+        )}
+
+        {/* Course Editor Modal */}
+        {showCourseModal && (
+          <CourseEditor
+            course={editingCourse}
+            courses={courses}
+            onSave={handleSaveCourse}
+            onClose={() => {
+              setShowCourseModal(false);
+              setEditingCourse(null);
+            }}
+          />
+        )}
+
+        {/* Blog Editor Modal */}
+        {showBlogModal && (
+          <BlogEditor
+            post={editingBlog}
+            onSave={handleSaveBlogPost}
+            onClose={() => {
+              setShowBlogModal(false);
+              setEditingBlog(null);
+            }}
+          />
         )}
 
         {/* LEADS VIEW */}

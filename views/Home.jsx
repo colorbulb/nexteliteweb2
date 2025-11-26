@@ -2,7 +2,10 @@ import React from 'react';
 import { ArrowRight, Brain, Mic, BookOpen, Cpu, Star } from 'lucide-react';
 
 export const Home = ({ onNavigate, onViewCourse, courses, content, testimonials }) => {
-  const featuredCourses = courses ? courses.slice(0, 3) : [];
+  // Show only featured courses (max 3), excluding disabled ones
+  const featuredCourses = courses 
+    ? courses.filter(c => c.featured && !c.disabled).slice(0, 3)
+    : [];
 
   return (
     <div className="flex flex-col w-full">
