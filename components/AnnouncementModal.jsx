@@ -1,30 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { getRandomAnnouncement } from '../firebase/db.js';
 
-export const AnnouncementModal = () => {
+export const AnnouncementModal = ({ announcements = [] }) => {
   const [announcement, setAnnouncement] = useState(null);
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    const loadAnnouncement = async () => {
-      try {
-        const randomAnnouncement = await getRandomAnnouncement();
-        if (randomAnnouncement) {
-          setAnnouncement(randomAnnouncement);
-          // Check if user has dismissed this announcement
-          const dismissedId = localStorage.getItem('dismissedAnnouncementId');
-          if (dismissedId !== randomAnnouncement.id) {
-            setShow(true);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading announcement:', error);
-      }
-    };
+    // Filter out disabled announcements
+    const activeAnnouncements = announcements.filter(ann => !ann.disabled);
+    
+    if (activeAnnouncements.length === 0) {
+      setAnnouncement(null);
+      setShow(false);
+      return;
+    }
 
-    loadAnnouncement();
-  }, []);
+    // Get random announcement from active ones
+    const randomIndex = Math.floor(Math.random() * activeAnnouncements.length);
+    const randomAnnouncement = activeAnnouncements[randomIndex];
+    
+    if (randomAnnouncement) {
+      setAnnouncement(randomAnnouncement);
+      // Check if user has dismissed this announcement
+      const dismissedId = localStorage.getItem('dismissedAnnouncementId');
+      if (dismissedId !== randomAnnouncement.id) {
+        setShow(true);
+      } else {
+        setShow(false);
+      }
+    }
+  }, [announcements]);
 
   const handleClose = () => {
     setShow(false);
@@ -47,10 +52,10 @@ export const AnnouncementModal = () => {
         </button>
 
         <div className="p-6">
-          {announcement.image && (
+          {(announcement.image || announcement.imageUrl) && (
             <div className="mb-4">
               <img
-                src={announcement.image}
+                src={announcement.image || announcement.imageUrl}
                 alt={announcement.title}
                 className="w-full h-64 object-cover rounded-lg"
               />

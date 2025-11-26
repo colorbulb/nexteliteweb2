@@ -351,9 +351,11 @@ export const deleteAnnouncement = async (announcementId) => {
 export const getRandomAnnouncement = async () => {
   try {
     const announcements = await getAnnouncements();
-    if (announcements.length === 0) return null;
-    const randomIndex = Math.floor(Math.random() * announcements.length);
-    return announcements[randomIndex];
+    // Filter out disabled announcements
+    const activeAnnouncements = announcements.filter(ann => !ann.disabled);
+    if (activeAnnouncements.length === 0) return null;
+    const randomIndex = Math.floor(Math.random() * activeAnnouncements.length);
+    return activeAnnouncements[randomIndex];
   } catch (error) {
     console.error('Error getting random announcement:', error);
     return null;

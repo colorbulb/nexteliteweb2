@@ -10,7 +10,7 @@ export const Home = ({ onNavigate, onViewCourse, courses, content, testimonials,
 
   return (
     <div className="flex flex-col w-full">
-      <AnnouncementModal />
+      <AnnouncementModal announcements={announcements || []} />
       {/* Hero Section */}
       <section className="relative bg-secondary text-white py-24 md:py-36 overflow-hidden">
         {/* Abstract Background Shapes */}
